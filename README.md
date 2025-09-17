@@ -10,7 +10,7 @@ This project automates the process of discovering and analyzing internship oppor
 - **Cleaning** and deduplicating job postings
 - **Detecting** potentially fake job postings
 - **Enriching** company information
-- **Generating** daily and weekly reports
+- **Analyzing** data with pandas for insights and trends
 
 ## 📁 Project Structure
 
@@ -20,7 +20,6 @@ This project automates the process of discovering and analyzing internship oppor
 ├── agents/                  # Crew.ai agents
 │   ├── fetcher.py           # Fetches internships from Job Board API
 │   ├── cleaner.py           # Dedup + filtering + fake detection
-│   ├── reporter.py          # Creates digest reports
 │   └── __init__.py
 │
 ├── tools/                   # Non-agent helper code
@@ -102,12 +101,42 @@ Generate a weekly summary and trend analysis:
 python main.py --mode weekly
 ```
 
+### Data Export
+
+Export processed data to CSV:
+
+```bash
+# Export all data
+python main.py --mode export
+
+# Export with custom filename
+python main.py --mode export --export-filename "my_internships.csv"
+
+# Export data from specific date range
+python main.py --mode export --start-date "2025-01-01" --end-date "2025-01-31"
+```
+
+### Data Summary
+
+View a summary of all processed data:
+
+```bash
+python main.py --mode summary
+```
+
 ### Custom Search
 
 Search for specific internships:
 
 ```bash
-python main.py --mode custom --keywords "software engineering" "data science" --location "San Francisco" --limit 100
+# Search for security internships
+python main.py --mode custom --security-keywords "cybersecurity" "security analyst" --location "London" --limit 100
+
+# Search for general internships
+python main.py --mode custom --internship-keywords "software engineering" "data science" --location "San Francisco" --limit 100
+
+# Search for both types
+python main.py --mode custom --internship-keywords "intern" --security-keywords "cyber" --location "New York" --limit 50
 ```
 
 ### Configuration
@@ -133,10 +162,11 @@ Edit `configs/settings.yaml` to customize:
 - Detects potentially fake job postings
 - Enriches company information
 
-### Reporter Agent
-- Generates daily digest reports
-- Creates weekly trend analysis
-- Exports data in multiple formats (CSV, Markdown, JSON)
+### Data Analysis
+- Analyzes processed data using pandas
+- Provides statistical summaries and insights
+- Exports data to CSV format
+- Generates trend analysis and market insights
 
 ## 🔧 Tools
 
@@ -168,20 +198,29 @@ Edit `configs/settings.yaml` to customize:
 3. **Enrich**: Company information is enhanced with external data
 4. **Report**: Processed data is formatted into reports
 
-## 📈 Reports
+## 📊 Data Analysis
 
-### Daily Reports
+### Data Summary
 - Total opportunities found
-- Top companies hiring
-- Most common roles
-- Salary ranges
+- Unique organizations and locations
+- Job type distribution
+- Top hiring companies
 - Geographic distribution
+- Industry analysis
+- LinkedIn organization insights
 
-### Weekly Analysis
-- Week-over-week trends
-- Emerging opportunities
-- Market insights
-- Recommendations
+### Export Options
+- CSV export with all job data
+- Date-filtered exports
+- Custom filename support
+- Comprehensive data fields
+
+### Statistical Insights
+- Job posting trends over time
+- Company size distribution
+- Industry breakdown
+- Location analysis
+- Remote work statistics
 
 ## 🧪 Testing
 

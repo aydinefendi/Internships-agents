@@ -27,18 +27,18 @@ class FetcherAgent:
             role="Data Fetcher",
             goal="Fetch internship data from job board APIs",
             backstory="You are an expert data fetcher specializing in job board APIs. "
-                     "You understand rate limiting, pagination, and data extraction patterns.",
+                      "You understand rate limiting, pagination, and data extraction patterns. ",
             verbose=True,
             allow_delegation=False,
             tools=[self.api_client]
         )
     
-    def fetch_internships(self, keywords: list, location: str = None, limit: int = 100):
+    def fetch_internships(self, filters: dict, location: str = None, limit: int = 100):
         """
-        Fetch internships based on keywords and location.
+        Fetch internships based on filters and location.
         
         Args:
-            keywords: List of job keywords to search for
+            filters: Dictionary containing internship_indicators and security_indicators
             location: Optional location filter
             limit: Maximum number of jobs to fetch
             
@@ -46,11 +46,11 @@ class FetcherAgent:
             dict: Summary of fetch operation
         """
         try:
-            logger.info(f"Starting fetch for keywords: {keywords}")
+            logger.info(f"Starting fetch with filters: {filters}")
             
             # Fetch data from API
             raw_data = self.api_client.search_jobs(
-                keywords=keywords,
+                filters=filters,
                 location=location,
                 limit=limit
             )
@@ -59,7 +59,7 @@ class FetcherAgent:
             timestamp = datetime.now().isoformat()
             raw_data['metadata'] = {
                 'fetched_at': timestamp,
-                'keywords': keywords,
+                'filters': filters,
                 'location': location,
                 'total_count': len(raw_data.get('jobs', []))
             }

@@ -74,8 +74,14 @@ class JobBoardAPIClient:
             # Parse JSON response
             json_data = json.loads(data.decode('utf-8'))
             
+            # Apply security filtering if security_indicators are provided
+            jobs = json_data if isinstance(json_data, list) else json_data.get('jobs', [])
+            if 'security_indicators' in filters:
+                jobs = self._filter_security_jobs(jobs, filters['security_indicators'])
+                logger.info(f"Filtered to {len(jobs)} security-related jobs")
+            
             # Normalize the response format
-            normalized_data = self._normalize_job_data(json_data)
+            normalized_data = self._normalize_job_data(jobs)
             
             logger.info(f"Retrieved {len(normalized_data.get('jobs', []))} jobs from RapidAPI")
             
@@ -86,13 +92,16 @@ class JobBoardAPIClient:
             logger.error(f"Error searching jobs: {str(e)}")
             raise
 
-    def is_security_posting(title, description, security_indicators):
+    def _is_security_posting(self, title: str, description: str, security_indicators: List[str]) -> bool:
+        """Check if a job posting is related to security based on title and description."""
         text = f"{title} {description}".lower()
-        return any(kw in text for kw in security_indicators)
+        return any(kw.lower() in text for kw in security_indicators)
     
-    filtered_jobs = [
-        job for job in jobs 
-        if is_security_posting(job['title'], job.get('description', ''), filters["security_indicators"])
+    def _filter_security_jobs(self, jobs: List[Dict], security_indicators: List[str]) -> List[Dict]:
+        """Filter jobs to only include security-related postings."""
+        return [
+            job for job in jobs 
+            if self._is_security_posting(job.get('title', ''), job.get('description', ''), security_indicators)
         ]
     
     def get_job_details(self, job_id: str) -> Dict:
@@ -108,19 +117,11 @@ class JobBoardAPIClient:
         try:
             self._rate_limit()
             
-            response = self.session.get(
-                f"{self.base_url}/jobs/{job_id}",
-                timeout=30
-            )
+            # For RapidAPI, we would need a different endpoint for individual job details
+            # This is a placeholder implementation
+            logger.warning(f"Individual job details not supported by RapidAPI for job_id: {job_id}")
+            return {}
             
-            response.raise_for_status()
-            data = response.json()
-            
-            return self._normalize_job_data({'jobs': [data]})['jobs'][0]
-            
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to get job details for {job_id}: {str(e)}")
-            raise
         except Exception as e:
             logger.error(f"Error getting job details: {str(e)}")
             raise
@@ -138,19 +139,11 @@ class JobBoardAPIClient:
         try:
             self._rate_limit()
             
-            response = self.session.get(
-                f"{self.base_url}/companies/{company_id}",
-                timeout=30
-            )
+            # For RapidAPI, we would need a different endpoint for company details
+            # This is a placeholder implementation
+            logger.warning(f"Individual company details not supported by RapidAPI for company_id: {company_id}")
+            return {}
             
-            response.raise_for_status()
-            data = response.json()
-            
-            return data
-            
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to get company info for {company_id}: {str(e)}")
-            raise
         except Exception as e:
             logger.error(f"Error getting company info: {str(e)}")
             raise
@@ -181,26 +174,58 @@ class JobBoardAPIClient:
         normalized_jobs = []
         
         for job in jobs:
+            # Extract location information
+            locations_raw = job.get('locations_raw', [])
+            location_info = self._extract_location_info(locations_raw)
+            
             # Extract salary information
+            salary_info = self._extract_salary_from_job(job)
+            
+            # Extract employment type
+            employment_types = job.get('employment_type', [])
+            job_type = employment_types[0] if employment_types else 'UNKNOWN'
             
             normalized_job = {
-                'id': job.get('id', job.get('job_id', '')),
-                'title': job.get('title', job.get('job_title', '')),
-                'organization': job.get('organization', job.get('organization_name', '')),
-                'organization_id': job.get('organization_id', ''),
-                'organization_url': job.get('organization_url', job.get('organization_url', '')),
-                'addressCountry': job.get('addressCountry', job.get('address_country', '')),
-                'addressLocality': job.get('addressLocality', job.get('address_locality', '')),
-                'date_posted': job.get('date_posted', job.get('date_posted', '')),
-                'description': job.get('description', job.get('job_description', '')),
-                'external_apply_url': job.get('url', job.get('job_url', '')),
-                'linkedin_org_industry': job.get('linkedin_org_industry', job.get('linkedin_org_industry', '')),
-                'linkedin_org_specialties': job.get('linkedin_org_specialties', job.get('linkedin_org_specialties', '')),
-                'linkedin_org_size': job.get('linkedin_org_size', job.get('linkedin_org_size', '')),
-                'linkedin_org_headquarters': job.get('linkedin_org_headquarters', job.get('linkedin_org_headquarters', '')),
-                'linkedin_org_description': job.get('linkedin_org_description', job.get('linkedin_org_description', '')),
-                'job_type': job.get('job_type', job.get('employment_type', '')),
-                'remote': job.get('remote', job.get('is_remote', False))
+                'id': job.get('id', ''),
+                'title': job.get('title', ''),
+                'organization': job.get('organization', ''),
+                'organization_url': job.get('organization_url', ''),
+                'organization_logo': job.get('organization_logo', ''),
+                'date_posted': job.get('date_posted', ''),
+                'date_validthrough': job.get('date_validthrough', ''),
+                'description': job.get('description', ''),
+                'external_apply_url': job.get('external_apply_url', ''),
+                'url': job.get('url', ''),
+                
+                # Location information
+                'address_country': location_info.get('country', ''),
+                'address_locality': location_info.get('locality', ''),
+                'address_region': location_info.get('region', ''),
+
+                
+                # Salary information
+                'salary': salary_info,
+                'salary_raw': job.get('salary_raw'),
+                
+                # Job type and seniority
+                'job_type': job_type,
+                'employment_type': employment_types,
+
+                'directapply': job.get('directapply', False),
+                
+                # LinkedIn organization information
+                'linkedin_org_url': job.get('linkedin_org_url', ''),
+                'linkedin_org_size': job.get('linkedin_org_size', ''),
+                'linkedin_org_industry': job.get('linkedin_org_industry', ''),
+                'linkedin_org_headquarters': job.get('linkedin_org_headquarters', ''),
+                'linkedin_org_type': job.get('linkedin_org_type', ''),
+                'linkedin_org_specialties': job.get('linkedin_org_specialties', []),
+                'linkedin_org_locations': job.get('linkedin_org_locations', []),
+                'linkedin_org_description': job.get('linkedin_org_description', ''),
+                
+                # Additional metadata
+                'ats_duplicate': job.get('ats_duplicate', False),
+                'raw_data': job  # Keep original for debugging
             }
             
             normalized_jobs.append(normalized_job)
@@ -212,17 +237,19 @@ class JobBoardAPIClient:
             'per_page': len(normalized_jobs)
         }
     
-    def _extract_salary(self, salary_data) -> Optional[Dict]:
-        """Extract and normalize salary information (legacy method)."""
-        if not salary_data:
-            return None
+    def _extract_location_info(self, locations_raw: List) -> Dict:
+        """Extract location information from locations_raw array."""
+        if not locations_raw or len(locations_raw) == 0:
+            return {}
         
-        if isinstance(salary_data, dict):
-            return {
-                'min': salary_data.get('min'),
-                'max': salary_data.get('max'),
-                'currency': salary_data.get('currency', 'USD'),
-                'period': salary_data.get('period', 'yearly')
-            }
+        # Get the first location (usually the primary one)
+        location = locations_raw[0]
+        address = location.get('address', {})
         
+        return {
+            'country': address.get('addressCountry', ''),
+            'locality': address.get('addressLocality', ''),
+            'location_type': location.get('location_type')
+        }
+
         return None
