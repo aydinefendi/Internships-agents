@@ -179,7 +179,7 @@ class JobBoardAPIClient:
         # RapidAPI returns a list of jobs directly
         jobs = api_response if isinstance(api_response, list) else api_response.get('jobs', [])
         normalized_jobs = []
-       
+        
         for job in jobs:
             # Extract salary information
             
@@ -211,34 +211,6 @@ class JobBoardAPIClient:
             'page': 1,
             'per_page': len(normalized_jobs)
         }
-    
-    
-    def _parse_salary_string(self, salary_str: str) -> Optional[Dict]:
-        """Parse salary information from a string."""
-        import re
-        
-        # Look for patterns like "$50,000 - $70,000" or "£30,000-£40,000"
-        pattern = r'[\$£€]?([0-9,]+)\s*-\s*[\$£€]?([0-9,]+)'
-        match = re.search(pattern, salary_str)
-        
-        if match:
-            min_sal = int(match.group(1).replace(',', ''))
-            max_sal = int(match.group(2).replace(',', ''))
-            
-            currency = 'USD'
-            if '£' in salary_str:
-                currency = 'GBP'
-            elif '€' in salary_str:
-                currency = 'EUR'
-            
-            return {
-                'min': min_sal,
-                'max': max_sal,
-                'currency': currency,
-                'period': 'yearly'
-            }
-        
-        return None
     
     def _extract_salary(self, salary_data) -> Optional[Dict]:
         """Extract and normalize salary information (legacy method)."""
