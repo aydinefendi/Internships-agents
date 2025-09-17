@@ -1,0 +1,134 @@
+# Settings configuration for 2026 Summer Internship pipeline
+
+# API Configuration
+api:
+  fantastic_jobs:
+    api_key: ${RAPID_API_KEY}  # Replace with actual API key
+    base_url: "internships-api.p.rapidapi.com"
+    rate_limit:
+      requests_per_minute: 60
+      requests_per_hour: 1000
+
+# Database Configuration
+database:
+  type: "sqlite"  # or "postgresql"
+  sqlite:
+    path: "data/internships.db"
+  postgresql:
+    host: "localhost"
+    port: 5432
+    database: "internships"
+    username: "your_username"
+    password: "your_password"
+
+# Job Search Configuration
+search:
+  internship_indicators:
+    - "Intern"
+    - "Internship"
+    - "summer analyst"
+    - "summer Intern"
+    - "summer Internship"
+
+  security_indicators:
+    - "security"
+    - "cyber"
+    - "cybersecurity"
+    - "cyber security"
+    - "cybersecurity analyst"
+    - "cybersecurity engineer"
+    - "cybersecurity consultant"
+    - "information security"
+    - "infosec"
+    - "appsec"
+    - "application security"
+    - "product security"  
+    - "security analyst"
+    - "cloud security"
+    - "network security"
+    - "platform security"
+    - "penetration test"
+    - "pentest"
+    - "red team"
+    - "blue team"
+    - "soc"
+    - "dfir"
+    - "forensics"
+    - "malware"
+    - "threat intel"
+    - "incident response"
+    - "cryptography"
+    - "iam"
+    - "identity access management"
+   
+  locations:
+    - "San Francisco"
+    - "California"
+    - "London"
+    - "United Kingdom"
+  
+  filters:
+    job_types:
+      - "full-time"
+      - "internship"  
+      
+    
+    exclude_keywords:
+      - "senior"
+      - "lead"
+      - "manager"
+      - "director"
+      - "executive"
+
+# Data Processing Configuration
+processing:
+  deduplication:
+    similarity_threshold: 0.8
+    enable_fuzzy_matching: true
+  
+  fake_detection:
+    enable_llm_verification: true
+    confidence_threshold: 0.7
+  
+  enrichment:
+    enable_company_enrichment: true
+    enable_wikipedia_lookup: true
+    cache_enrichment_data: true
+
+# Reporting Configuration
+reporting:
+  daily_reports:
+    enabled: true
+    time: "09:00"  # 9 AM daily
+  
+  weekly_reports:
+    enabled: true
+    day: "monday"  # Monday weekly reports
+  
+  formats:
+    - "csv"
+    - "markdown"
+    - "json"
+  
+  output_directory: "data/reports"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/pipeline.log"
+  max_size: "10MB"
+  backup_count: 5
+
+# Crew.ai Configuration
+crew:
+  max_iterations: 10
+  memory: true
+  verbose: true
+  max_execution_time: 3600  # 1 hour
+
+# Rate Limiting
+rate_limits:
+  api_requests_per_second: 1
+  database_operations_per_second: 10
+  enrichment_requests_per_minute: 30

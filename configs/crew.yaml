@@ -1,0 +1,122 @@
+# Crew.ai Agent Configuration for 2026 Summer Internship pipeline
+
+# Fetcher Agent Configuration
+fetcher_agent:
+  role: "Data Fetcher"
+  goal: "Fetch internship data from job board APIs efficiently and reliably"
+  backstory: |
+    You are an expert data fetcher with extensive experience in job board APIs.
+    You understand rate limiting, pagination, error handling, and data extraction patterns.
+    You excel at retrieving large volumes of job data while respecting API constraints.
+  
+  tools:
+    - "api_client"
+    - "db_manager"
+  
+  max_iterations: 5
+  memory: true
+  verbose: true
+
+# Cleaner Agent Configuration
+cleaner_agent:
+  role: "Data Cleaner"
+  goal: "Clean, deduplicate, and enrich internship data to ensure high quality"
+  backstory: |
+    You are a data cleaning expert with deep knowledge of job board data patterns.
+    You excel at identifying duplicates, filtering irrelevant content, detecting
+    fraudulent postings, and enriching company information. Your attention to
+    detail ensures only high-quality data makes it through the pipeline.
+  
+  tools:
+    - "dedup_manager"
+    - "enricher"
+    - "db_manager"
+  
+  max_iterations: 8
+  memory: true
+  verbose: true
+
+# Reporter Agent Configuration
+reporter_agent:
+  role: "Report Generator"
+  goal: "Create comprehensive and actionable reports from processed internship data"
+  backstory: |
+    You are a business intelligence expert with experience in data visualization
+    and report generation. You excel at creating clear, actionable reports that
+    help job seekers and recruiters understand market trends and opportunities.
+    Your reports are both informative and visually appealing.
+  
+  tools:
+    - "db_manager"
+    - "data_analyzer"
+  
+  max_iterations: 6
+  memory: true
+  verbose: true
+
+# Crew Configuration
+crew:
+  name: "Internship Pipeline Crew"
+  description: "Automated pipeline for fetching, cleaning, and reporting on internship opportunities"
+  
+  agents:
+    - "fetcher_agent"
+    - "cleaner_agent"
+    - "reporter_agent"
+  
+  tasks:
+    - "fetch_internships"
+    - "clean_data"
+    - "generate_daily_report"
+    - "generate_weekly_summary"
+  
+  workflow:
+    - name: "daily_pipeline"
+      description: "Daily internship data processing pipeline"
+      steps:
+        1:
+          agent: "fetcher_agent"
+          task: "fetch_internships"
+          inputs:
+            keywords: "{{search_keywords}}"
+            location: "{{search_location}}"
+            limit: 100
+        2:
+          agent: "cleaner_agent"
+          task: "clean_data"
+          inputs:
+            raw_data_id: "{{fetcher_output.raw_data_id}}"
+            filters: "{{cleaning_filters}}"
+        3:
+          agent: "reporter_agent"
+          task: "generate_daily_report"
+          inputs:
+            processed_data_id: "{{cleaner_output.processed_data_id}}"
+            date: "{{current_date}}"
+    
+    - name: "weekly_analysis"
+      description: "Weekly trend analysis and summary"
+      steps:
+        1:
+          agent: "reporter_agent"
+          task: "generate_weekly_summary"
+          inputs:
+            start_date: "{{week_start_date}}"
+            end_date: "{{week_end_date}}"
+  
+  # Global settings
+  max_execution_time: 3600  # 1 hour
+  memory: true
+  verbose: true
+  
+  # Error handling
+  error_handling:
+    max_retries: 3
+    retry_delay: 30  # seconds
+    continue_on_error: false
+  
+  # Performance settings
+  performance:
+    parallel_execution: true
+    max_parallel_agents: 2
+    timeout_per_task: 1800  # 30 minutes per task

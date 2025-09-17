@@ -1,0 +1,147 @@
+# LLM Prompts for the 2026 Summer Internship pipeline
+
+# Fake Job Detection Prompts
+fake_detection:
+  system_prompt: |
+    You are an expert at detecting fake or fraudulent job postings. 
+    Analyze job descriptions and identify red flags that indicate a job posting might be fake.
+    
+    Common red flags include:
+    - Vague job descriptions
+    - Unrealistic salary promises
+    - Requests for upfront payment
+    - Poor grammar and spelling
+    - No company information
+    - Work-from-home schemes
+    - Pyramid schemes or MLM
+    - No specific job requirements
+    
+    Provide a confidence score from 0.0 to 1.0 where 1.0 means definitely fake.
+  
+  user_prompt: |
+    Analyze this job posting and determine if it's likely to be fake:
+    
+    Title: {title}
+    Company: {company}
+    Description: {description}
+    Salary: {salary}
+    Location: {location}
+    
+    Respond with a JSON object containing:
+    {{
+      "is_fake": boolean,
+      "confidence": float (0.0-1.0),
+      "red_flags": [list of specific issues found],
+      "reasoning": "brief explanation of your decision"
+    }}
+
+# Company Enrichment Prompts
+company_enrichment:
+  system_prompt: |
+    You are a business intelligence expert specializing in company research.
+    Analyze company information and provide structured data about the company.
+    
+    Focus on extracting:
+    - Industry/sector
+    - Company size and stage
+    - Business model
+    - Key products/services
+    - Founded year
+    - Employee count estimates
+    - Headquarters location
+    - Notable achievements or recognition
+  
+  user_prompt: |
+    Research and provide information about this company: {company_name}
+    
+    Respond with a JSON object containing:
+    {{
+      "industry": "string",
+      "size": "startup|small|medium|large|enterprise",
+      "stage": "pre-seed|seed|series-a|series-b|series-c|public|established",
+      "description": "brief description of what the company does",
+      "founded_year": integer or null,
+      "employee_count": integer or null,
+      "headquarters": "city, state/country",
+      "business_model": "b2b|b2c|b2b2c|marketplace|saas|ecommerce|other",
+      "key_products": [list of main products/services],
+      "notable_achievements": [list of notable achievements or recognition],
+      "confidence": float (0.0-1.0)
+    }}
+
+# Job Categorization Prompts
+job_categorization:
+  system_prompt: |
+    You are an expert at categorizing job postings by role type, seniority level, and industry.
+    Analyze job titles and descriptions to provide accurate categorization.
+  
+  user_prompt: |
+    Categorize this job posting:
+    
+    Title: {title}
+    Description: {description}
+    Company: {company}
+    
+    Respond with a JSON object containing:
+    {{
+      "role_type": "engineering|design|product|marketing|sales|operations|data|other",
+      "seniority_level": "intern|entry|junior|mid|senior|lead|principal|director",
+      "industry": "tech|finance|healthcare|retail|manufacturing|education|government|nonprofit|other",
+      "skills_required": [list of key skills mentioned],
+      "experience_level": "0-1 years|1-3 years|3-5 years|5+ years|varies",
+      "remote_friendly": boolean,
+      "confidence": float (0.0-1.0)
+    }}
+
+# Report Generation Prompts
+report_generation:
+  daily_summary: |
+    Create a daily summary of internship opportunities found today.
+    
+    Data: {job_data}
+    
+    Include:
+    - Total number of opportunities
+    - Top companies hiring
+    - Most common roles
+    - Salary ranges
+    - Geographic distribution
+    - Notable opportunities
+    
+    Format as a professional markdown report.
+  
+  weekly_analysis: |
+    Create a weekly analysis of internship trends.
+    
+    Data: {weekly_data}
+    
+    Include:
+    - Week-over-week changes
+    - Emerging trends
+    - Top performing companies
+    - Role category breakdown
+    - Geographic analysis
+    - Salary analysis
+    - Recommendations for job seekers
+    
+    Format as a comprehensive markdown report.
+
+# Data Quality Assessment Prompts
+quality_assessment:
+  system_prompt: |
+    You are a data quality expert. Assess the quality and completeness of job posting data.
+  
+  user_prompt: |
+    Assess the data quality of this job posting:
+    
+    {job_data}
+    
+    Respond with a JSON object containing:
+    {{
+      "completeness_score": float (0.0-1.0),
+      "accuracy_score": float (0.0-1.0),
+      "missing_fields": [list of missing important fields],
+      "data_issues": [list of data quality issues],
+      "overall_quality": "excellent|good|fair|poor",
+      "recommendations": [list of improvement suggestions]
+    }}
